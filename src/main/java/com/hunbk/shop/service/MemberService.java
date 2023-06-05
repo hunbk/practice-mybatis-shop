@@ -1,6 +1,8 @@
 package com.hunbk.shop.service;
 
+import com.hunbk.shop.domain.AuthInfo;
 import com.hunbk.shop.domain.Member;
+import com.hunbk.shop.dto.member.LoginForm;
 import com.hunbk.shop.dto.member.SignupForm;
 import com.hunbk.shop.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,13 @@ public class MemberService {
                 .email(signupForm.getEmail())
                 .build();
         return memberRepository.save(member);
+    }
+
+    public AuthInfo login(LoginForm loginForm) {
+        return memberRepository.findById(loginForm.getId())
+                .filter(m -> m.getPassword().equals(loginForm.getPassword()))
+                .map(AuthInfo::createAuth)
+                .orElse(null);
     }
 
     public Optional<Member> findByNo(Integer no) {
