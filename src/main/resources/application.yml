@@ -1,1 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/bit_shop
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
+mybatis:
+  type-aliases-package: com.hunbk.shop.domain
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com:
+      hunbk:
+        shop:
+          repository:
+            mybatis: trace
