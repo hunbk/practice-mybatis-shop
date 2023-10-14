@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hunbk.shop.repository.mybatis.item.ItemMapper">
+
+    <resultMap id="itemResultMap" type="Item">
+        <id property="itemNo" column="item_no"></id>
+        <result property="name" column="item_name"></result>
+        <result property="category" column="category"></result>
+        <result property="price" column="price"></result>
+        <result property="stock" column="stock"></result>
+        <result property="description" column="description"></result>
+        <result property="imagePath" column="image_path"></result>
+        <association property="member" javaType="Member">
+            <id property="memberNo" column="member_no"></id>
+            <result property="id" column="id"></result>
+            <result property="password" column="password"></result>
+            <result property="name" column="member_name"></result>
+            <result property="email" column="email"></result>
+        </association>
+    </resultMap>
+
+    <select id="findByNo" resultMap="itemResultMap">
+        select item_no,
+               item.name   as item_name,
+               category,
+               price,
+               stock,
+               description,
+               image_path,
+               member.member_no,
+               id,
+               password,
+               member.name as member_name,
+               email
+        from item
+                 left outer join member on item.member_no = member.member_no
+        where item_no = #{no}
+    </select>
+
+    <select id="findAll" resultMap="itemResultMap">
+        select item_no,
+               item.name        as item_name,
+               category,
+               price,
+               stock,
+               description,
+               image_path,
+               member.member_no,
+               id,
+               password,
+               member.name      as member_name,
+               email
+        from item
+                 left outer join member on item.member_no = member.member_no
+    </select>
+
+    <select id="getMemberFavoriteItems" resultMap="itemResultMap">
+        select i.item_no,
+               i.name      as item_name,
+               category,
+               price,
+               stock,
+               description,
+               image_path,
+               m.member_no as member_member_no,
+               id,
+               password,
+               m.name      as member_name,
+               email
+        from item i
+                 left outer join member m on i.member_no = m.member_no
+                 left outer join favorite f on i.item_no = f.item_no
+        where f.member_no = #{memberNo}
+    </select>
+
+</mapper>

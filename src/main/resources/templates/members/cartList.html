@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .flex-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .flex-container > div {
+            margin-right: 20px;
+        }
+
+        .flex-container > div:last-child {
+            margin-right: 0;
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-info > div {
+            margin-bottom: 5px;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            //장바구니 삭제
+            let removeCartItemButtons = document.querySelectorAll('.remove-cart-item-btn');
+            removeCartItemButtons.forEach(function (button) {
+                button.addEventListener('click', (event) => {
+                    let itemNo = event.target.dataset.itemNo;
+                    removeCartItem(itemNo);
+                });
+            });
+
+            function removeCartItem(itemNo) {
+                fetch(`/api/members/cart/${itemNo}`, {
+                    method: 'DELETE',
+                })
+                    .then(response => {
+                        if (response.status == 204) {
+                            alert('삭제 완료');
+                            document.getElementById('item-' + itemNo).remove();
+                        } else if (response.status == 401) {
+                            alert('로그인이 필요합니다.');
+                            location.href = '/member/login';
+                        } else if (response.status == 400) {
+                            alert('잘못된 요청입니다.');
+                        } else {
+                            throw new Error('Request failed');
+                        }
+                    });
+            }
+
+            //수량 변경
+            let itemsQuantity = document.querySelectorAll('.item-quantity');
+            itemsQuantity.forEach(function (input) {
+                input.addEventListener('input', (event) => {
+                    let itemNo = event.target.dataset.itemNo;
+                    let quantity = event.target.value;
+                    updateCartItemQuantity(itemNo, quantity);
+                });
+            });
+
+            function updateCartItemQuantity(itemNo, quantity) {
+                fetch(`/api/members/cart/${itemNo}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "quantity": quantity,
+                    })
+                })
+                    .then(response => {
+                        if (response.status == 200) {
+                            console.log('완료');
+                            updateCartItemPrice(itemNo);
+                        } else if (response.status == 401) {
+                            alert('로그인이 필요합니다.');
+                            location.href = '/member/login';
+                        } else if (response.status == 400) {
+                            alert('잘못된 요청입니다.');
+                        } else {
+                            throw new Error('Request failed');
+                        }
+                    });
+            }
+
+            function updateCartItemPrice(itemNo) {
+                let cartItemPrice = document.getElementById(`item-${itemNo}-price`);
+                let cartItemQuantity = document.getElementById(`item-${itemNo}-quantity`);
+                let price = cartItemPrice.dataset.price * cartItemQuantity.value;
+                cartItemPrice.innerText = price.toString();
+            }
+        });
+    </script>
+</head>
+<body>
+<div>
+    <h1>장바구니 목록</h1>
+    <button type="button" onclick="location.href='/';">홈으로</button>
+</div>
+<div>
+    <div>
+        <ul>
+            <li th:id="${'item-' + item.item.itemNo}" th:each="item : ${cartItems}">
+                <div class="flex-container">
+                    <div>
+                        <a th:href="@{|/items/${item.item.itemNo}|}">
+                            <img th:src="|/images/${item.item.imagePath}|" alt="상품이미지" width="200" height="200">
+                        </a>
+                    </div>
+                    <div class="item-info">
+                        <div>
+                            <a th:href="@{|/items/${item.item.itemNo}|}" th:text="${item.item.name}">이름</a>
+                        </div>
+                        <div>
+                            <span th:id="${'item-' + item.item.itemNo + '-price'}"
+                                  th:text="${(item.item.price * item.quantity)}"
+                                  th:data-price="${item.item.price}">가격</span>원
+                        </div>
+                        <div>
+                            수량: <input th:data-item-no="${item.item.itemNo}" class="item-quantity"
+                                       type="number" th:id="${'item-' + item.item.itemNo} + '-quantity'"
+                                       th:value="${item.quantity}"
+                                       min="1">
+                        </div>
+                        <div>
+                            <button th:data-item-no="${item.item.itemNo}" class="remove-cart-item-btn">상품 삭제</button>
+                        </div>
+                    </div>
+                    <div>
+                        판매자:<span th:text="${item.item.member.name}">판매자</span>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

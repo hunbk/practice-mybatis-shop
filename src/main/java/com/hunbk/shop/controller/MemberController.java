@@ -1,24 +1,25 @@
 package com.hunbk.shop.controller;
 
 import com.hunbk.shop.domain.AuthInfo;
+import com.hunbk.shop.domain.CartItem;
+import com.hunbk.shop.domain.Item;
 import com.hunbk.shop.domain.Member;
 import com.hunbk.shop.dto.member.LoginForm;
 import com.hunbk.shop.dto.member.SignupForm;
+import com.hunbk.shop.service.ItemService;
 import com.hunbk.shop.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.util.List;
 
 @Slf4j
 @Controller
@@ -27,6 +28,7 @@ import javax.validation.Valid;
 public class MemberController {
 
     private final MemberService memberService;
+    private final ItemService itemService;
 
     @GetMapping("/signup")
     public String signupForm(Model model) {
@@ -82,8 +84,39 @@ public class MemberController {
         log.info("authInfo.memberNo={}", authInfo.getMemberNo());
 
         HttpSession session = request.getSession();
-        session.setAttribute(SessionConst.AUTH_INFO, authInfo);
+        session.setAttribute(StringConst.AUTH_INFO, authInfo);
 
         return "redirect:/";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/";
+    }
+
+    @GetMapping("/favorite")
+    public String favoriteList(@SessionAttribute(name = StringConst.AUTH_INFO, required = false) AuthInfo authInfo,
+                               Model model) {
+        if (authInfo == null) {
+            return "redirect:/member/login";
+        }
+        List<Item> favoriteItems = itemService.getMemberFavoriteItems(authInfo.getMemberNo());
+        model.addAttribute("items", favoriteItems);
+
+        return "members/favoriteList";
+    }
+
+    @GetMapping("/cart")
+    public String cartList(@SessionAttribute(name = StringConst.AUTH_INFO, required = false) AuthInfo authInfo,
+                           Model model) {
+        if (authInfo == null) {
+            return "redirect:/member/login";
+        }
+
+        List<CartItem> cartItems = memberService.findCartItemByMemberNo(authInfo.getMemberNo());
+        model.addAttribute("cartItems", cartItems);
+
+        return "members/cartList";
     }
 }

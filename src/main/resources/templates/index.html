@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>shop</title>
 </head>
 <body>
-hello spring
+<a th:if="${session.authInfo == null}" href="/member/login">로그인</a>
+<a th:unless="${session.authInfo == null}" href="/member/logout">로그아웃</a>
+<a th:if="${session.authInfo == null}" href="/member/signup">회원가입</a>
+<a href="/items">상품 목록</a>
+<a th:unless="${session.authInfo == null}" href="/member/favorite">찜 목록</a>
+<a th:unless="${session.authInfo == null}" href="/member/cart">장바구니</a>
 </body>
 </html>

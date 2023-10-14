@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hunbk.shop.repository.mybatis.member.MemberMapper">
+
+    <!-- 회원 시작 -->
+    <insert id="save" useGeneratedKeys="true" keyProperty="memberNo">
+        insert into member (id, password, name, email)
+        values (#{id}, #{password}, #{name}, #{email})
+    </insert>
+
+    <select id="findByNo" resultType="Member">
+        select member_no, id, password, name, email
+        from member
+        where member_no = #{no}
+    </select>
+
+    <select id="findById" resultType="Member">
+        select member_no, id, password, name, email
+        from member
+        where id = #{id}
+    </select>
+
+    <select id="existsById" resultType="boolean">
+        select exists(select 1
+                      from member
+                      where id = #{id})
+    </select>
+
+    <select id="existsEmail" resultType="boolean">
+        select exists(select 1
+                      from member
+                      where email = #{email})
+    </select>
+    <!-- 회원 끝 -->
+
+    <!-- 찜 시작 -->
+    <insert id="addFavoriteItem">
+        insert into favorite (member_no, item_no)
+        values (#{memberNo}, #{itemNo})
+    </insert>
+
+    <delete id="cancelFavoriteItem">
+        delete
+        from favorite
+        where member_no = #{memberNo}
+          and item_no = #{itemNo}
+    </delete>
+
+    <select id="existsFavoriteItem" resultType="boolean">
+        select exists(select 1
+                      from favorite
+                      where member_no = #{memberNo}
+                        and item_no = #{itemNo})
+    </select>
+    <!-- 찜 끝 -->
+
+    <!-- 장바구니 시작 -->
+    <resultMap id="cartItemResultMap" type="CartItem">
+        <association property="member" column="member_no" javaType="Member"
+                     select="com.hunbk.shop.repository.mybatis.member.MemberMapper.findByNo"/>
+        <association property="item" column="item_no" javaType="Item"
+                     select="com.hunbk.shop.repository.mybatis.item.ItemMapper.findByNo"/>
+    </resultMap>
+
+    <insert id="addCartItem">
+        insert into cart (member_no, item_no, quantity)
+        values (#{memberNo}, #{itemNo}, #{quantity})
+    </insert>
+
+    <delete id="removeCartItem">
+        delete
+        from cart
+        where member_no = #{memberNo}
+          and item_no = #{itemNo}
+    </delete>
+
+    <update id="updateCartItemQuantity">
+        update cart
+        set quantity = #{quantity}
+        where member_no = #{memberNo}
+          and item_no = #{itemNo}
+    </update>
+
+    <select id="existsCartItem" resultType="boolean">
+        select exists(select 1
+                      from cart
+                      where member_no = #{memberNo}
+                        and item_no = #{itemNo})
+    </select>
+
+    <select id="findCartItem" resultMap="cartItemResultMap">
+        select *
+        from cart c
+                 left outer join member m on c.member_no = m.member_no
+                 left outer join item i on c.item_no = i.item_no
+        where c.member_no = #{memberNo}
+          and c.item_no = #{itemNo}
+    </select>
+
+    <select id="findCartItemByMemberNo" resultMap="cartItemResultMap">
+        select *
+        from cart c
+                 left outer join member m on c.member_no = m.member_no
+                 left outer join item i on c.item_no = i.item_no
+        where c.member_no = #{memberNo}
+    </select>
+    <!-- 장바구니 끝 -->
+
+</mapper>

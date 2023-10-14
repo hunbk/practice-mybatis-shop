@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('buy-btn').addEventListener('click', () => {
+                alert('준비중입니다!');
+            });
+            document.getElementById('cart-btn').addEventListener('click', (event) => {
+                let itemNo = event.target.dataset.itemNo;
+                let quantity = document.getElementById('quantity').value;
+                addCart(itemNo, quantity);
+            });
+
+            function addCart(itemNo, quantity) {
+                fetch(`/api/members/cart/${itemNo}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "quantity": quantity,
+                    })
+                })
+                    .then(response => {
+                        if (response.status == 201) {
+                            alert('장바구니 담기 완료!');
+                        } else if (response.status == 200) {
+                            alert('장바구니 수량 업데이트 완료!');
+                        } else if (response.status == 401) {
+                            alert('로그인이 필요합니다.');
+                            location.href = '/member/login';
+                        } else if (response.status == 400) {
+                            alert('잘못된 요청입니다.');
+                        } else {
+                            throw new Error('Request failed');
+                        }
+                    });
+
+            }
+        });
+    </script>
+</head>
+<body>
+<div id="container">
+    <div>
+        <h1>상품정보</h1>
+        <button type="button" onclick="location.href='/';">홈으로</button>
+    </div>
+    <button onclick="location.href='/items'">목록으로</button>
+    <div>
+        번호: <span th:text="${item.itemNo}">번호</span><br>
+        이름: <span th:text="${item.name}">이름</span><br>
+        <img th:src="|/images/${item.imagePath}|" alt="상품이미지" width="200" height="200"><br>
+        카테고리: <span th:text="${item.category}">카테고리</span><br>
+        소개:
+        <pre th:text="${item.description}">소개</pre>
+        <br>
+        가격: <span th:text="${item.price}">가격</span>원<br>
+        재고: <span th:text="${item.stock}">재고</span><br>
+        <div>
+            <input type="number" name="quantity" id="quantity" value="1" min="1">
+            <button th:data-item-no="${item.itemNo}" id="cart-btn">장바구니 담기</button>
+        </div>
+        <button id="buy-btn">구매</button>
+    </div>
+</div>
+</body>
+</html>
